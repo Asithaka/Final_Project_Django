@@ -140,7 +140,7 @@ def friends(request):
     
     # check to see WHICH submit button was pressed(sending a friend request or accepting a friend request)
 
-    # this is to process all send request
+    # this is to process all send requests
 
     if request.method == 'POST' and request.POST.get("send_requests"):
         receivers = request.POST.getlist("send_requests")
@@ -149,7 +149,7 @@ def friends(request):
             Relationship.objects.create(sender=user_profile, receiver=receiver_profile, status='sent')
         return redirect('FeedApp:friends')
     
-    # this is to process all receive request
+    # this is to process all receive requests
 
     if request.method == 'POST' and request.POST.get("receive_requests"):
         senders = request.POST.getlist("friend_requests")
