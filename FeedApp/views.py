@@ -88,10 +88,14 @@ def comments(request, post_id):
 
 @login_required
 def friendsfeed(request):
+
     comment_count_list=[]
     like_count_list=[]
+
     friends = Profile.objects.filter(user=request.user).values('friends')
+
     posts = Post.objects.filter(username__in=friends).order_by('-date_posted')
+
     for p in posts:
         c_count = Comment.objects.filter(post=p).count()
         l_count = Like.objects.filter(post=p).count()
@@ -101,14 +105,16 @@ def friendsfeed(request):
 
     if request.method =='POST' and request.POST.get("like"):
         post_to_like = request.POST.get("like")
-        like_alreay_exists = Like.objects.filter(post_id=post_to_like, username=request.user)
-        if not like_alreay_exists():
+        print(post_to_like)
+
+        like_already_exists  = Like.objects.filter(post_id=post_to_like, username=request.user)
+        if not like_already_exists.exists():
             Like.objects.create(post_id=post_to_like,username=request.user)
             return redirect("FeedApp:friendsfeed")
 
 
     context ={'posts':posts, 'zipped_list':zipped_list}
-    return render(request, 'FeedApp/myfeed.html', context)
+    return render(request, 'FeedApp/friendsfeed.html', context)
 
 
 @login_required
@@ -119,10 +125,10 @@ def friends(request):
 
    # to get My Friends
     user_friends = user_profile.friends.all()
-    user_friends_profiles = Profile.objects.filter(user_id=user_friends)
+    user_friends_profiles = Profile.objects.filter(user__in=user_friends)
 
     # to get Friends requests sent
-    user_relationships = Relationship.objects.filter(user_id=user_profile)
+    user_relationships = Relationship.objects.filter(sender=user_profile)
     request_sent_profiles = user_relationships.values('receiver')
 
     # to get the eligible profiles- exclude the user, their existing friends, and frind requests sent already
@@ -152,7 +158,7 @@ def friends(request):
     # this is to process all receive requests
 
     if request.method == 'POST' and request.POST.get("receive_requests"):
-        senders = request.POST.getlist("friend_requests")
+        senders = request.POST.getlist("receive_requests")
         for sender in senders:
       # update the relationship model for the sender to status 'accepted'
             Relationship.objects.filter(id=sender).update(status='accepted')
